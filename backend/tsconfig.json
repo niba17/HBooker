@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2020",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false,
+
+    // --- PENTING: Penambahan Path Aliases ---
+    "baseUrl": "./",
+    "paths": {
+      // Menunjuk @auth/* ke folder src/auth/
+      "@auth/*": ["src/auth/*"],
+      // Menunjuk @generated/* ke folder generated/
+      "@generated/*": ["generated/*"]
+    }
+    // ------------------------------------------
+  }
+}

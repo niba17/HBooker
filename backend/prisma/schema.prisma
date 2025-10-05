@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+  // JANGAN LUPA: Tambahkan output path ini jika Anda menggunakan alias @generated/prisma
+  // output = "../generated/prisma" 
+}
+
+datasource db {
+  provider = "postgresql" // Ganti sesuai DB yang Anda gunakan (misalnya: "mysql", "sqlite")
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------
+// MODEL YANG HILANG: Hotel
+// Ini adalah definisi model 'Hotel' yang diperlukan oleh impor Anda.
+// ----------------------------------------------------
+model Hotel {
+  // ID harus selalu ada
+  id          String   @id @default(uuid())
+  
+  // Informasi Dasar Hotel
+  name        String   @unique
+  description String?
+  address     String?
+  city        String?
+  country     String?
+  rating      Float?   // Misalnya, rating rata-rata (0.0 - 5.0)
+  
+  // Log Waktu
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relasi (Contoh)
+  rooms       Room[]   // Hotel memiliki banyak kamar
+  bookings    Booking[] // Hotel memiliki banyak reservasi
+
+  @@map("hotels") // Nama tabel di database
+}
+
+// Tambahkan model Room sebagai contoh relasi
+model Room {
+  id        String   @id @default(uuid())
+  number    Int
+  type      String
+  price     Decimal
+  
+  // Foreign Key ke Hotel
+  hotelId   String
+  hotel     Hotel    @relation(fields: [hotelId], references: [id])
+  
+  @@unique([hotelId, number]) // Nomor kamar unik per hotel
+  @@map("rooms")
+}
+
+model Booking {
+  id        String    @id @default(uuid())
+  checkIn   DateTime
+  checkOut  DateTime
+  totalCost Decimal
+  
+  // Foreign Key ke Hotel
+  hotelId   String
+  hotel     Hotel     @relation(fields: [hotelId], references: [id])
+
+  // Anda juga perlu relasi ke model User/Client di sini
+  // userId    String
+  // user      User      @relation(fields: [userId], references: [id])
+  
+  @@map("bookings")
+}
