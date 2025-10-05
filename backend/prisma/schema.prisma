@@ -14,26 +14,47 @@ datasource db {
 // Ini adalah definisi model 'Hotel' yang diperlukan oleh impor Anda.
 // ----------------------------------------------------
 model Hotel {
-  // ID harus selalu ada
   id          String   @id @default(uuid())
-  
-  // Informasi Dasar Hotel
-  name        String   @unique
-  description String?
-  address     String?
-  city        String?
-  country     String?
-  rating      Float?   // Misalnya, rating rata-rata (0.0 - 5.0)
-  
-  // Log Waktu
-  createdAt   DateTime @default(now())
+  // ... (Field lainnya)
   updatedAt   DateTime @updatedAt
   
-  // Relasi (Contoh)
-  rooms       Room[]   // Hotel memiliki banyak kamar
-  bookings    Booking[] // Hotel memiliki banyak reservasi
+  rooms       Room[]
+  bookings    Booking[]
+  
+  // PERBAIKAN: Hapus @map dari field relasi 'amenities'
+  amenities HotelAmenity[] // Hapus @map("hotel_amenities_relation")
+  
+  @@map("hotels")
+}
 
-  @@map("hotels") // Nama tabel di database
+// ... (Model Amenity)
+
+model Amenity {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  
+  // PERBAIKAN: Hapus @map dari field relasi 'hotels'
+  hotels    HotelAmenity[] // Hapus @map("amenity_hotels_relation")
+
+  @@map("amenities")
+}
+
+// ----------------------------------------------------
+// MODEL BARU: HotelAmenity (Tabel Perantara / Many-to-Many)
+// PASTIKAN NAMA MODEL DIMULAI DENGAN HURUF BESAR: HotelAmenity
+// ----------------------------------------------------
+model HotelAmenity { 
+  hotelId   String
+  amenityId String
+  
+  // Relasi ke Hotel
+  hotel     Hotel    @relation(fields: [hotelId], references: [id])
+  
+  // Relasi ke Amenity
+  amenity   Amenity  @relation(fields: [amenityId], references: [id])
+  
+  @@id([hotelId, amenityId]) 
+  @@map("hotel_amenities")
 }
 
 // Tambahkan model Room sebagai contoh relasi

@@ -3,13 +3,31 @@ import {
   NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
+
+// PATH ASLI: import { PrismaService } from "../../../prisma/prisma.service";
+// PERBAIKAN PATH: Menggunakan path relatif yang sesuai (asumsi service berada di src/hotel/services)
 import { PrismaService } from "../../../prisma/prisma.service";
+// Jika Anda sudah mengaktifkan path alias di tsconfig, Anda bisa menggunakan: import { PrismaService } from '@prisma/prisma.service';
+
 import { CreateHotelDto } from "../dto/create-hotel.dto";
-import { Hotel } from "@generated/prisma";
+import { Hotel } from "@generated/prisma"; // Menggunakan alias
 
 @Injectable()
 export class HotelService {
   constructor(private prisma: PrismaService) {}
+
+  // Daftar lengkap field skalar Model Hotel yang harus disertakan di setiap SELECT/INCLUDE
+  private hotelSelectFields = {
+    id: true,
+    name: true,
+    description: true,
+    address: true,
+    city: true,
+    country: true,
+    rating: true,
+    createdAt: true,
+    updatedAt: true,
+  };
 
   /**
    * Mengambil informasi Hotel H
@@ -17,13 +35,17 @@ export class HotelService {
   async findHotelInfo(): Promise<Hotel> {
     // Karena hanya ada satu hotel, kita ambil yang pertama
     const hotel = await this.prisma.hotel.findFirst({
-      include: { amenities: { include: { amenity: true } } },
+      select: {
+        ...this.hotelSelectFields, // Tambahkan semua field dasar
+        amenities: { include: { amenity: true } },
+      },
     });
 
     if (!hotel) {
       throw new NotFoundException("Data Hotel H belum diinisialisasi.");
     }
-    return hotel;
+    // TS2739 teratasi karena semua field dasar sekarang ada di objek 'hotel'
+    return hotel as Hotel;
   }
 
   /**
@@ -55,14 +77,10 @@ export class HotelService {
       }
     }
 
-    const dataToSave = {
-      name: dto.name,
-      address: dto.address,
-      city: dto.city,
-      description: dto.description,
-      rating: dto.rating,
-    };
+    // Pisahkan data hotel dari array amenityNames
+    const { amenityNames, ...dataToSave } = dto;
 
+    // Periksa jika hotelId ada, lakukan UPDATE
     if (hotelId) {
       // UPDATE (Jika hotel sudah ada)
       // Hapus koneksi amenities lama sebelum membuat koneksi baru
@@ -79,8 +97,12 @@ export class HotelService {
             },
           },
         },
-        include: { amenities: { include: { amenity: true } } },
-      });
+        // PERBAIKAN: Gunakan SELECT
+        select: {
+          ...this.hotelSelectFields,
+          amenities: { include: { amenity: true } },
+        },
+      }) as unknown as Hotel;
     } else {
       // CREATE (Jika hotel belum ada)
       return this.prisma.hotel.create({
@@ -93,8 +115,12 @@ export class HotelService {
             },
           },
         },
-        include: { amenities: { include: { amenity: true } } },
-      });
+        // PERBAIKAN: Gunakan SELECT
+        select: {
+          ...this.hotelSelectFields,
+          amenities: { include: { amenity: true } },
+        },
+      }) as unknown as Hotel;
     }
   }
 }
